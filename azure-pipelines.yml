@@ -1,0 +1,28 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: UseNode@1
+  inputs:
+    version: '18.x'
+- script: |
+    echo $(MONGO_URI) > .env
+  displayName: 'adding .env'
+- script: |
+    npm install
+    npm test
+  displayName: 'Install and Test'
+- task: CopyFiles@2
+  inputs:
+    contents: '**'
+    targetFolder: '$(build.artifactStagingDirectory)'
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(build.artifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
