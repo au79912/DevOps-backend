@@ -9,8 +9,14 @@ const signUpUser = async (req, res) => {
   try {
     const hash = await bcrypt.hash(password, 8)
 
+    const users = await User.findOne({email})
+    if (users) {
+      sendResponseError(500, 'Email already taken', res)
+      return
+    }
+
     await User.create({...req.body, password: hash})
-    res.status(201).send('Sucessfully account opened ')
+    res.status(201).send('Successfully account opened ')
     return
   } catch (err) {
     console.log('Eorror : ', err)
@@ -20,12 +26,15 @@ const signUpUser = async (req, res) => {
 }
 
 const signInUser = async (req, res) => {
-  const {password, email} = req.body
-  console.log(req.body)
   try {
+    const {password, email} = req.body
+    
     const user = await User.findOne({email})
-    if (!!!user) {
+    console.log(user, email)
+    if (!user) {
       sendResponseError(400, 'You have to Sign up first !', res)
+      console.log(res.body)
+      return
     }
 
     const same = await checkPassword(password, user.password)
